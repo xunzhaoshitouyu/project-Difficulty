@@ -121,11 +121,6 @@
         :key="chart.id"
         :id="chart.id"
       >
-        <!-- <a-collapse-panel header="生命体征">
-          <div class="echart-container">
-            <div>111</div>
-          </div>
-        </a-collapse-panel> -->
         <a-collapse-panel :header="chart.title">
           <div
             v-for="(data,index) in chart.child"
@@ -164,66 +159,8 @@
                 ></div>
               </div>
             </div>
-
-          </div>
-          <!-- <div class="echart-container">
-            <div
-              class="echart-item-parent"
-              v-for="data in chart.child"
-              :key="data.id"
-            >
-              <p v-if="!data.seriesData">{{data.title}}</p>
-              <div
-                v-else
-                v-show="!onlyAbnormal || data.isAbnormal"
-                class="echart-item"
-                :data-echartId="data.id"
-              ></div>
-            </div>
-          </div> -->
-        </a-collapse-panel>
-        <!-- <a-collapse-panel
-          header="患者生命体征"
-          id="vitalSigns"
-          key="1"
-        >
-          <div class="echart-container">
-            <div
-              class="echart-item"
-              v-for="(data, index) in echartsTestData"
-              :key="index"
-            ></div>
           </div>
         </a-collapse-panel>
-        <a-collapse-panel
-          id="complication"
-          header="合并症·并发症"
-          key="2"
-        >
-          <div class="date-line">
-            <span class="date-line-label">肺水肿</span>
-            <div class="date-line-chunk">
-              <div
-                class="chunk-item"
-                title="记录：丁医生（2019-12-17 18:12）
-取消：王护士（2019-12-18 9:30）"
-              ></div>
-            </div>
-          </div>
-        </a-collapse-panel>
-        <a-collapse-panel
-          id="labExamination"
-          header="实验室检查"
-          key="3"
-        >
-          <div class="echart-container">
-            <div
-              class="echart-item"
-              v-for="(data, index) in echartsTestData"
-              :key="index"
-            ></div>
-          </div>
-        </a-collapse-panel> -->
       </a-collapse>
     </div>
   </div>
