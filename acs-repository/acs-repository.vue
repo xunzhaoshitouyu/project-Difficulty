@@ -1,17 +1,35 @@
 
 <template>
   <div style="height:100%;background:#fff;padding:0 10px;display:flex;flex-direction:column;">
-    <a-input-search style="margin:10px 0;" placeholder="请输入搜索内容" enterButton @search="onSearch" />
-    <section style="height:90%;" v-if="isSearch">
+    <a-input-search
+      style="margin:10px 0;"
+      placeholder="请输入搜索内容"
+      enterButton
+      @search="onSearch"
+    />
+    <section
+      style="height:90%;"
+      v-if="isSearch"
+    >
       <ul style="height:100%;overflow:auto;">
-        <li class="search-item" v-for="(item,index) in searchData" :key="index">
+        <li
+          class="search-item"
+          v-for="(item,index) in searchData"
+          :key="index"
+        >
           <h4>{{item.menu_name}}</h4>
           <p v-html="item.content"></p>
         </li>
       </ul>
     </section>
-    <section style="height:90%;display:flex;" v-else>
-      <menu type="toolbar" style="width:200px;border-right:1px solid #ddd;overflow:auto;">
+    <section
+      style="height:90%;display:flex;"
+      v-else
+    >
+      <menu
+        type="toolbar"
+        style="width:200px;border-right:1px solid #ddd;overflow:auto;"
+      >
         <a-tree
           :loadData="onLoadData"
           :treeData="treeData"
@@ -20,8 +38,15 @@
           @select="selectTreeNode"
         />
       </menu>
-      <article id="content" style="flex:1;margin-left:10px;overflow:auto;">
-        <div v-for="(item,index) in contentData" :id="item.id" :key="index">
+      <article
+        id="content"
+        style="flex:1;margin-left:10px;overflow:auto;"
+      >
+        <div
+          v-for="(item,index) in contentData"
+          :id="item.id"
+          :key="index"
+        >
           <span v-html="item.content"></span>
         </div>
       </article>
@@ -31,22 +56,21 @@
 <script>
 export default {
   name: "acs-repository",
-  data() {
+  data () {
     return {
       treeData: [],
       contentData: [],
-      firstContent: [],
-      secondContent: [],
       expandedKeys: [],
       searchData: [],
-      isSearch: false
+      isSearch: false,
+      contentList: []
     };
   },
-  created() {
+  created () {
     this.getName();
   },
   methods: {
-    getName() {
+    getName () {
       Service.post(WsConfig.catalogMenu, {}).then(res => {
         if (res.success) {
           this.treeData = res.data;
@@ -59,13 +83,13 @@ export default {
         }
       });
     },
-    onExpand(expendkey, { expanded, node }) {
-      if (node.dataRef.key == 1 || node.dataRef.key == 2) {
-        if (node.dataRef.key == 1) {
-          this.contentData = this.firstContent;
-        } else {
-          this.contentData = this.secondContent;
+    onExpand (expendkey, { expanded, node }) {
+      if (!isNaN(Number(node.dataRef.key))) {
+        if (!this.contentList[node.dataRef.key - 1]) {
+          this.contentList[node.dataRef.key - 1] = [];
         }
+
+        this.contentData = this.contentList[node.dataRef.key - 1];
         this.expandedKeys = [];
         if (expanded) {
           this.expandedKeys.push(node.dataRef.key);
@@ -74,14 +98,14 @@ export default {
         if (expanded) {
           this.expandedKeys.push(node.dataRef.key);
         } else {
-          _.remove(this.expandedKeys, function(n) {
+          _.remove(this.expandedKeys, function (n) {
             return n == node.dataRef.key;
           });
           this.$forceUpdate();
         }
       }
     },
-    onLoadData(treeNode) {
+    onLoadData (treeNode) {
       return new Promise((resolve, reject) => {
         if (treeNode.dataRef.isLeaf == undefined) {
           Service.post(WsConfig.catalog, { shu_id: treeNode.dataRef.key }).then(
@@ -99,17 +123,16 @@ export default {
                 this.treeData = [...this.treeData];
                 resolve();
               } else {
-                reject();
+                reject(new Error("失败"));
               }
             }
           );
         } else {
           resolve();
-          return;
         }
       });
     },
-    formatData(prefix, oldData) {
+    formatData (prefix, oldData) {
       let newData = [];
       oldData.forEach(item => {
         let treeNode = {
@@ -118,7 +141,7 @@ export default {
           children: null,
           isLeaf: false
         };
-        treeNode.key = prefix.toString() + item.id;
+        treeNode.key = prefix.toString() + "-" + item.id;
         treeNode.title = item.menu_name;
         treeNode.content = item.content;
         treeNode.isLeaf = !item.children.length;
@@ -129,37 +152,32 @@ export default {
       });
       return newData;
     },
-    dfsContent(prefix, parentId, originData) {
+    dfsContent (prefix, parentId, originData) {
       originData.forEach(item => {
         const contentItem = {
-          id: parentId.toString() + item.id,
+          id: parentId.toString() + "-" + item.id,
           content: item.content
         };
-        if (prefix == 1) {
-          this.firstContent.push(contentItem);
-          if (item.children.length) {
-            this.dfsContent(prefix, item.id, item.children);
-          }
-        } else {
-          this.secondContent.push(contentItem);
-          if (item.children.length) {
-            this.dfsContent(prefix, item.id, item.children);
-          }
+        this.contentList[prefix - 1].push(contentItem);
+        if (item.children.length) {
+          this.dfsContent(prefix, item.id, item.children);
         }
       });
     },
-    selectTreeNode(selectedKeys, { selected, selectedNodes, node, event }) {
-      $("#content").animate(
-        {
-          scrollTop:
-            $("#content").scrollTop() +
-            $("#" + selectedNodes[0].key).offset().top -
-            $("#content").offset().top
-        },
-        1000
-      );
+    selectTreeNode (selectedKeys, { selected, selectedNodes, node, event }) {
+      if (selectedNodes[0] && isNaN(Number(selectedNodes[0].key))) {
+        $("#content").animate(
+          {
+            scrollTop:
+              $("#content").scrollTop() +
+              $("#" + selectedNodes[0].key).offset().top -
+              $("#content").offset().top
+          },
+          1000
+        );
+      }
     },
-    onSearch(value) {
+    onSearch (value) {
       if (value.length) {
         this.isSearch = true;
       } else {
@@ -169,7 +187,7 @@ export default {
       Service.post(WsConfig.searchCatalog, { moHuSelect: value }).then(res => {
         if (res.success) {
           this.searchData = res.data;
-          _.map(this.searchData, function(item) {
+          _.map(this.searchData, function (item) {
             item.content = item.content.replace(
               value,
               `<font color='#ff6700'><b>${value}</b></font>`
