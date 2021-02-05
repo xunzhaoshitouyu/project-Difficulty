@@ -91,7 +91,7 @@ export default class UploadController {
                 message
               } = await this.service.uploadFile.saveFile({
                 name: originName,
-                username: '陈晨06',
+                username: 'zhangsan',
                 resource_url: res,
                 file_type,
                 keywords: originName,
